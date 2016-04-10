@@ -147,7 +147,7 @@ void SysTick_Handler(void)
   /* check Joystick state every polling interval (10ms) */
   if (counter++ == USBD_HID_GetPollingInterval(&USBD_Device))
   {  
-    GetPointerData(HID_Buffer);
+    //GetPointerData(HID_Buffer);
     
     /* send data though IN endpoint*/
     if((HID_Buffer[1] != 0) || (HID_Buffer[2] != 0))

@@ -39,6 +39,7 @@
 extern PCD_HandleTypeDef hpcd;
 uint8_t HID_Buffer[4];
 extern USBD_HandleTypeDef USBD_Device;
+extern uint8_t MouseInfoFlag;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 static void GetPointerData(uint8_t *pbuf);
@@ -142,21 +143,21 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   static __IO uint32_t counter=0;
+	
   HAL_IncTick();
   
   /* check Joystick state every polling interval (10ms) */
   if (counter++ == USBD_HID_GetPollingInterval(&USBD_Device))
   {  
     //GetPointerData(HID_Buffer);
-    
-    /* send data though IN endpoint*/
-    if((HID_Buffer[1] != 0) || (HID_Buffer[2] != 0))
-    {
-      USBD_HID_SendReport(&USBD_Device, HID_Buffer, 4);
-    }
-    counter =0;
+    if(MouseInfoFlag == 1)
+		{
+			MouseInfoFlag = 0;
+			/* send data though IN endpoint*/
+			USBD_HID_SendReport(&USBD_Device, HID_Buffer, 4);
+		}	
+		counter =0;
   }
-  Toggle_Leds();
 }
 
 /******************************************************************************/

@@ -40,12 +40,16 @@ extern PCD_HandleTypeDef hpcd;
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
 uint8_t UartData = 0;
-uint8_t UartBuffer[50] = {0};
+uint8_t UartBuffer[200] = {0};
 uint8_t UartDataUnpackState = 0;
 uint8_t CheckSum = 0;
 uint8_t MouseInfoFlag = 0;
+uint32_t UartRcvCount = 0;
+uint8_t UartClick = 0;
+uint32_t PackageCount = 0;
 
 extern uint8_t HID_Buffer[4];
+extern uint8_t HID_Buffer_Send[4];
 
 /* Private function prototypes -----------------------------------------------*/
 static void Error_Handler(void);
@@ -104,7 +108,7 @@ int main(void)
   //BSP_JOY_Init(JOY_MODE_GPIO);  
   
   /* Configure Key Button, used for remote wakeup */
-  //BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
+  BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
   
   /* Init Device Library */
   USBD_Init(&USBD_Device, &HID_Desc, 0);
@@ -118,13 +122,31 @@ int main(void)
   /* Run Application (Interrupt mode) */
   while (1)
   {
+//		/* Wait for USER Button press before starting the Communication */
+//		while (BSP_PB_GetState(BUTTON_KEY) == RESET)
+//		{
+//					HID_Buffer_Send[0] = 0x00;
+//		}
+//		/* Wait for USER Button release before starting the Communication */
+//		while (BSP_PB_GetState(BUTTON_KEY) == SET)
+//		{
+//					HID_Buffer_Send[0] = 0x01;
+//		}
+//		/* Toggle LED3 waiting for user to press button */
+//		Toggle_Leds();
+
+//		MouseInfoFlag = 1;
+		
+		
 		if(HAL_UART_Receive(&UartHandle, &UartData, 1, 0xffffffff)== HAL_OK)
 		{
 			static uint32_t counter = 0;
 			UartBuffer[counter] = UartData;
-			if(counter >= 50)
+			if(counter >= 200)
 				counter = 0;
 			counter++;
+			
+			UartRcvCount++;
 			
 			switch(UartDataUnpackState)
 			{
@@ -174,8 +196,16 @@ int main(void)
 				case 9:
 					if(CheckSum == UartData)
 					{
+						HID_Buffer_Send[0] = HID_Buffer[0];
+						HID_Buffer_Send[1] = HID_Buffer[1];
+						HID_Buffer_Send[2] = HID_Buffer[2];
+						HID_Buffer_Send[3] = HID_Buffer[3];
+						
 						MouseInfoFlag = 1;
 						Toggle_Leds();
+						
+						UartClick = HID_Buffer[0];
+						PackageCount++;
 					}
 					UartDataUnpackState = 0;
 					break;

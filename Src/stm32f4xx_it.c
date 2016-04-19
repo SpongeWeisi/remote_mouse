@@ -37,7 +37,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd;
-uint8_t HID_Buffer[4];
+uint8_t HID_Buffer[4] = {0};
+uint8_t HID_Buffer_Send[4] = {0};
 extern USBD_HandleTypeDef USBD_Device;
 extern uint8_t MouseInfoFlag;
 /* Private function prototypes -----------------------------------------------*/
@@ -154,7 +155,7 @@ void SysTick_Handler(void)
 		{
 			MouseInfoFlag = 0;
 			/* send data though IN endpoint*/
-			USBD_HID_SendReport(&USBD_Device, HID_Buffer, 4);
+			USBD_HID_SendReport(&USBD_Device, HID_Buffer_Send, 4);
 		}	
 		counter =0;
   }
